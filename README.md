@@ -1,4 +1,4 @@
-# MMM-Tides
+# MMM-Tide-Times
 
 A MagicMirror² module that displays UK tide times using the WorldTides API. WorldTides provides global tide predictions, including comprehensive coverage of UK waters, using latitude and longitude to find the nearest prediction point.
 
@@ -49,13 +49,13 @@ Use [Google Maps](https://www.google.com/maps) or any mapping tool — right-cli
    ```
 2. Clone this module:
    ```bash
-   git clone https://github.com/yourusername/MMM-Tides.git
+   git clone https://github.com/yourusername/MMM-Tide-Times.git
    ```
 3. Add the module to your `config/config.js`:
 
 ```javascript
 {
-  module: "MMM-Tides",
+  module: "MMM-Tide-Times",
   position: "top_left",
   config: {
     lat: 51.1269,            // Latitude of your location

@@ -1,4 +1,4 @@
-Module.register("MMM-Tides", {
+Module.register("MMM-Tide-Times", {
   defaults: {
     lat: 51.1269,
     lon: 1.3136,
@@ -14,7 +14,7 @@ Module.register("MMM-Tides", {
   },
 
   getStyles: function () {
-    return ["MMM-Tides.css"];
+    return ["MMM-Tide-Times.css"];
   },
 
   getTranslations: function () {
