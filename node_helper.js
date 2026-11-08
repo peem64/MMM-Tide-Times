@@ -64,8 +64,9 @@ module.exports = NodeHelper.create({
       var extremes = data.extremes || [];
 
       var events = extremes.map(function (e) {
+        var timestamp = e.date ? new Date(e.date).getTime() : e.dt * 1000;
         return {
-          t: e.dt,
+          t: new Date(timestamp).toISOString(),
           v: e.height,
           type: e.type === "High" ? "H" : "L",
         };
