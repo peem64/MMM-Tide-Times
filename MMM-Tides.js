@@ -1,13 +1,14 @@
 Module.register("MMM-Tides", {
   defaults: {
-    stationId: "8443970",
+    stationId: "0162",
     stationName: null,
+    apiKey: "",
     days: 2,
     heightUnit: "metric",
     updateInterval: 60 * 60 * 1000,
     initialLoadDelay: 0,
     maxEvents: 7,
-    showSunMoon: false,
+    showAttribution: true,
   },
 
   getStyles: function () {
@@ -111,6 +112,13 @@ Module.register("MMM-Tides", {
       wrapper.appendChild(list);
     }
 
+    if (this.config.showAttribution) {
+      var attr = document.createElement("div");
+      attr.className = "tides-attribution";
+      attr.innerHTML = "Contains ADMIRALTY&reg; tidal data";
+      wrapper.appendChild(attr);
+    }
+
     return wrapper;
   },
 
@@ -161,6 +169,7 @@ Module.register("MMM-Tides", {
   updateTides: function () {
     this.sendSocketNotification("FETCH_TIDES", {
       stationId: this.config.stationId,
+      apiKey: this.config.apiKey,
       days: this.config.days,
     });
   },

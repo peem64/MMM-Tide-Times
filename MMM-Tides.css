@@ -67,3 +67,9 @@
   font-size: var(--font-size-small);
   opacity: 0.6;
 }
+
+.tides-attribution {
+  font-size: var(--font-size-xsmall);
+  opacity: 0.35;
+  margin-top: 6px;
+}
