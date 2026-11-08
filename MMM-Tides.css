@@ -1,0 +1,69 @@
+.tides-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tides-header {
+  font-size: var(--font-size-small);
+  font-weight: bold;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.tides-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-small);
+}
+
+.tides-table td {
+  padding: 2px 8px;
+}
+
+.tides-type {
+  width: 22px;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+.tides-H {
+  color: #4fc3f7;
+}
+
+.tides-L {
+  color: #ff8a65;
+}
+
+.tides-time {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.tides-date {
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.tides-height {
+  text-align: right;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.tides-row.tides-next {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.tides-row.tides-next td {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.tides-loading,
+.tides-error,
+.tides-empty {
+  font-size: var(--font-size-small);
+  opacity: 0.6;
+}
