@@ -1,7 +1,6 @@
 {
   "name": "mmm-tide-times-demo",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
