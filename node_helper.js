@@ -1,13 +1,9 @@
 var NodeHelper = require("node_helper");
 var https = require("https");
 
-var ADMIRALTY_BASE = "https://admiraltyapi.portal.azure-api.net";
+var WORLDTIDES_BASE = "https://www.worldtides.info/api/v3";
 
 module.exports = NodeHelper.create({
-  start: function () {
-    this.stationCache = {};
-  },
-
   socketNotificationReceived: function (notification, payload) {
     if (notification === "FETCH_TIDES") {
       this.fetchTides(payload);
@@ -16,103 +12,101 @@ module.exports = NodeHelper.create({
 
   fetchTides: function (payload) {
     var self = this;
-    var stationId = payload.stationId;
     var apiKey = payload.apiKey;
+    var lat = payload.lat;
+    var lon = payload.lon;
     var days = payload.days || 2;
+    var datum = payload.datum || "CD";
 
     if (!apiKey) {
       this.sendSocketNotification("TIDES_RESULT", {
-        error: "No Admiralty API key configured. See README for setup instructions.",
+        error: "No WorldTides API key configured. See README for setup instructions.",
       });
       return;
     }
 
-    var eventsUrl =
-      ADMIRALTY_BASE +
-      "/api/V2/stations/" +
-      encodeURIComponent(stationId) +
-      "/TidalEvents?days=" +
-      days;
+    var today = new Date();
+    var dateStr =
+      today.getFullYear() +
+      "-" +
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0");
 
-    this.httpsGet(eventsUrl, apiKey, function (tideData) {
-      if (tideData.error) {
-        self.sendSocketNotification("TIDES_RESULT", { error: tideData.error.message });
+    var url =
+      WORLDTIDES_BASE +
+      "?extremes&localtime&datum=" +
+      encodeURIComponent(datum) +
+      "&date=" +
+      dateStr +
+      "&days=" +
+      days +
+      "&lat=" +
+      lat +
+      "&lon=" +
+      lon +
+      "&key=" +
+      encodeURIComponent(apiKey);
+
+    this.httpsGet(url, function (data) {
+      if (data.error) {
+        self.sendSocketNotification("TIDES_RESULT", { error: data.error });
         return;
       }
 
-      var events = (tideData.events || []).map(function (e) {
+      if (data.status && data.status !== 200) {
+        self.sendSocketNotification("TIDES_RESULT", {
+          error: data.error || "WorldTides API error (status " + data.status + ")",
+        });
+        return;
+      }
+
+      var extremes = data.extremes || [];
+
+      var events = extremes.map(function (e) {
         return {
-          t: e.DateTime,
-          v: e.Height,
-          type: e.EventType === "HighWater" ? "H" : "L",
+          t: e.dt,
+          v: e.height,
+          type: e.type === "High" ? "H" : "L",
         };
       });
 
-      var cached = self.stationCache[stationId];
+      var stationName = data.station || null;
 
-      if (cached) {
-        self.sendResult(events, cached);
-      } else {
-        var stationUrl = ADMIRALTY_BASE + "/api/V2/stations/" + encodeURIComponent(stationId);
-
-        self.httpsGet(stationUrl, apiKey, function (stationData) {
-          var stationName = null;
-
-          if (!stationData.error && stationData.properties) {
-            stationName = stationData.properties.Name;
-            self.stationCache[stationId] = stationName;
-          }
-
-          self.sendResult(events, stationName);
-        });
-      }
+      self.sendSocketNotification("TIDES_RESULT", {
+        events: events,
+        stationName: stationName,
+        copyright: data.copyright || null,
+      });
     });
   },
 
-  sendResult: function (events, stationName) {
-    this.sendSocketNotification("TIDES_RESULT", {
-      events: events,
-      stationName: stationName,
-    });
-  },
-
-  httpsGet: function (url, apiKey, callback) {
-    var options = {
-      url: url,
-      headers: {
-        "Ocp-Apim-Subscription-Key": apiKey,
-      },
-    };
-
+  httpsGet: function (url, callback) {
     https
-      .get(url, options, function (res) {
+      .get(url, function (res) {
         var body = "";
         res.on("data", function (chunk) {
           body += chunk;
         });
         res.on("end", function () {
           if (res.statusCode === 401 || res.statusCode === 403) {
-            callback({ error: { message: "Invalid Admiralty API key" } });
+            callback({ error: "Invalid WorldTides API key" });
             return;
           }
           if (res.statusCode === 429) {
-            callback({ error: { message: "Admiralty API rate limit reached" } });
-            return;
-          }
-          if (res.statusCode === 404) {
-            callback({ error: { message: "Tide station not found" } });
+            callback({ error: "WorldTides API rate limit reached" });
             return;
           }
           try {
             var data = JSON.parse(body);
             callback(data);
           } catch (e) {
-            callback({ error: { message: "Failed to parse tide data from Admiralty" } });
+            callback({ error: "Failed to parse tide data from WorldTides" });
           }
         });
       })
       .on("error", function () {
-        callback({ error: { message: "Unable to reach Admiralty tide service" } });
+        callback({ error: "Unable to reach WorldTides service" });
       });
   },
 });

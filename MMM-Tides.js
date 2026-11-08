@@ -1,10 +1,12 @@
 Module.register("MMM-Tides", {
   defaults: {
-    stationId: "0162",
-    stationName: null,
+    lat: 51.1269,
+    lon: 1.3136,
+    locationName: "Dover",
     apiKey: "",
-    days: 2,
+    days: 3,
     heightUnit: "metric",
+    datum: "CD",
     updateInterval: 60 * 60 * 1000,
     initialLoadDelay: 0,
     maxEvents: 7,
@@ -23,7 +25,8 @@ Module.register("MMM-Tides", {
 
   start: function () {
     this.tideEvents = [];
-    this.stationName = this.config.stationName;
+    this.stationName = null;
+    this.copyright = null;
     this.loaded = false;
     this.errorMessage = null;
 
@@ -51,10 +54,11 @@ Module.register("MMM-Tides", {
       return wrapper;
     }
 
-    if (this.stationName) {
+    var headerText = this.config.locationName || this.stationName;
+    if (headerText) {
       var header = document.createElement("div");
       header.className = "tides-header";
-      header.innerHTML = this.stationName;
+      header.innerHTML = headerText;
       wrapper.appendChild(header);
     }
 
@@ -115,7 +119,7 @@ Module.register("MMM-Tides", {
     if (this.config.showAttribution) {
       var attr = document.createElement("div");
       attr.className = "tides-attribution";
-      attr.innerHTML = "Contains ADMIRALTY&reg; tidal data";
+      attr.innerHTML = this.copyright || "Tide data &copy; WorldTides";
       wrapper.appendChild(attr);
     }
 
@@ -168,9 +172,11 @@ Module.register("MMM-Tides", {
 
   updateTides: function () {
     this.sendSocketNotification("FETCH_TIDES", {
-      stationId: this.config.stationId,
+      lat: this.config.lat,
+      lon: this.config.lon,
       apiKey: this.config.apiKey,
       days: this.config.days,
+      datum: this.config.datum,
     });
   },
 
@@ -182,7 +188,8 @@ Module.register("MMM-Tides", {
         this.updateDom();
       } else {
         this.tideEvents = payload.events || [];
-        this.stationName = payload.stationName || this.stationName;
+        this.stationName = payload.stationName || null;
+        this.copyright = payload.copyright || null;
         this.errorMessage = null;
         this.loaded = true;
         this.updateDom();
